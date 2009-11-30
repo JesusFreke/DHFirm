@@ -1,0 +1,90 @@
+The Datahand uses an AT89C55WD processer, which is a microcontroller in the 8051 family. It has 20k of code space
+and 256bytes of RAM. It uses a 12MHz oscillater, which makes timing very convenient, because 1 processor cycle
+is exactly 1 uS. (1 processor cycle takes 12 cycles of the oscillator)
+
+Each side of the datahand unit has 26 buttons total. 5 buttons for each of the 4 fingers, and 6 buttons for the thumb.
+The buttons of each side are completely indepedent (and both sides are handled exactly the same). The buttons are 
+connected to a 4x18 demux in pairs. By changing the 4bit value on the selector, the CPU can select specific pairs of
+buttons. When a pair of buttons are selected, the CPU can read the status of each button.
+
+The buttons themselves consist of a emitter and reciever, assumably infrared. The emitters are connected to
+the demux, so that when a pair of buttons are selected, the emitters for each button turn on. When a button is pressed,
+the light from the emitters is allowed to hit the reciever, and the receiver outputs a low voltage level. When a
+button is not pressed, the light from the emitter is blocked, and the receiver outputs a high voltage level. The
+recievers are connected to an inverting trigger, which gives the CPU a nice low to high to low voltage transition,
+instead of an arbitrary waveform when a button is pressed/released. It also inverts the voltage, so that the CPU
+sees a high voltage on the corresponding input pin when a button is pressed. Note: once a new value is "selected"
+on the demux, it can take up to 60-70uS for the new button state to appear to the CPU. This is probably due to
+several factors - the time it takes for the emitter to emit at full power, the time it takes for the reciever
+to change voltage due to the light or absense of light from the emitter, and the delaying effect of the trigger. A
+safe amount of time to wait after changing the selector is probably around 100uS.
+
+Each LEDs on the datahand is connected to a specific pin on the CPU. The LEDs are turned on by writing a 0 to that
+pin, and turned off by writing a 1.
+
+The PS/2 data bus consists of 2 lines that are used to send data. A data and a clock line. The CPU has 2 pins
+for each line. One way to think about them are as the "input" and "output" pins for each line. One one pin
+you can read the current (actual) value of the line, and you "write" to the line using the other pin. 
+Each line defaults to high, but can be forced low by either end. In other words, the line is low if either side
+is forcing it low, otherwise it is high.
+The so-called "input" and "output" pins for a single line may have a different value. For example, if the host is
+holding the clock low, and we try to output a high signal, the "write" pin will be high, but the "read" pin will
+be low. The actual PS/2 protocol itself is outside the scope of this document.
+(see http://www.burtonsys.com/ps2_chapweske.htm)
+
+
+
+The firmware basically consists of performing the same 3 operations over and over.
+1. Send any buffered data
+2. Scan for key changes 
+3. read data from the host (if it's requesting to send anything).
+
+The equivalent functions for each operation are
+SendBufferedData
+CheckButtons
+CheckForHostCommand
+
+
+
+SendBufferedData attempts to send any data that has been buffered. The data is broken up into chunks that must
+be sent together, so that if any byte in the chunk fails, the whole chunk needs to be resent. The chunks
+represent individual scancodes (which can be multiple bytes each). The keyboard buffer is 32 bytes long, and is named
+KeyBuffer. The current position in the buffer is KeyBufferPosition. The first byte of the buffer (assuming its
+non-empty) is the length of the first chunk, not including the length byte itself. The byte immediately after
+the first chunk is the length of the second chunk, and so on. KeyBufferPosition points to the end of the buffer.
+
+CheckButtons is responsible for scanning the keys, determining if any key was pressed or released, and
+performing the appropriate action. Each time CheckButtons is called, it reads the state of the two buttons
+that are currently selected. Immediately after it reads the current state, it outputs the next selector value
+to the demux, so that the states of the next keys will be available when the function is called next. After it
+outputs the new selector value, it compares the states of the buttons that it just read with the saved states.
+If the saved state and the "just read" state don't match, then the key was either pressed or released. When it
+determines that a key was pressed or released, it sets the ButtonIndex variable to denote the specific button 
+that was pressed or released, and it calls HandleButtonPress or HandleButtonRelease.
+
+HandleButtonPress and HandleButtonRelease basically consist of a set of tables that specify what action to
+take for each key, depending on what mode the keyboard is in (normal, NAS or function). For most keys, it
+just tries to send the corresponding scancode (or buffers the scancode if it can't), using a few common
+routines, depending on what mode we're in and whether the scancode for the button is a normal scancode (1 byte)
+or extended scancode (2 bytes). Some keys are handled with button-specific code. For most keys, the scancodes
+are stored in a set of tables located in the flash memory. There is an individual table for each mode. The table
+contains a single byte for each button, and is indexed based on the ButtonIndex. In the case of 2 byte extended
+scancodes, the table stores just the second byte of the scancode (the first byte is always 0xE0). We treat
+other keys that have longer scancodes as a special case. They don't use these tables at all.
+
+CheckForHostCommand checks if the host is requesting to send data (data line low, clock high), and if so, 
+it reads the command byte from the host, and sends an acknowledgement byte. It performs the appropriate
+function, depending on the command. Some commands may require additional bytes to be sent by the host, and
+some commands require that the keyboard send data to the host.
+
+The "Typematic" feature is handled by using a timer with timing values depending on the typematic delay and
+repeate rate. Whenever a typematic key is pressed, the timer is reset to the "delay" value and restarted. When
+the timer reaches 0, it calls the interrupt handler which calls the ____ function. This function repeats the
+last-sent scancode, and resets the timer using a short period, depending on the typematic rate.
+Back in the normal program flow, as soon as a button state change is detected in CheckButtons (either a press
+or a release), it immediately stops the timer, to prevent another repeated keypress from being sent. Because of
+this, the timer will never be enabled when we are sending a normal (non-repeated) keystroke, so we don't
+have to worry about being interrupted when trying to send a scancode. Also, if CheckForHostData detects that the
+host is requesting to send data, it immediately stops the timer.
+
+

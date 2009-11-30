@@ -1,0 +1,52 @@
+DHFirm: DataHand firmware
+Author: Ben Gruver (JesusFreke@JesusFreke.com)
+
+This is a firmware written from scratch in 8051 assembly for the DataHand
+keyboard, which uses an Atmel AT89C55WD microcontroller.
+
+I wrote this mainly because I couldn't get the exact button mapping I wanted
+with the stock firmware, just using key maps on the computer. The mapping is a
+modified dvorak-style mapping. The modifications were mostly to prevent common
+keys from being mapped to "north" buttons (and in some cases east/west),
+because those seem to be less somewhat more difficult to press than the well
+and south keys.
+
+The firmware isn't as functional as the "stock" firmware. For example, it
+doesn't support any type of runtime configuration, the mouse functionality,
+macros, etc.
+
+You can find (and modify) the key map that it uses in ScanButtons.asm. The
+*Map tables (NormalMap, NASMap, etc.) store the PS2 scan code for each key in
+each mode. And then further down, in the HandleButtonPress_* and
+HandleButtonRelease_* procedures, the appropriate *Press or *Release procedure
+is called for each key in each mode - depending on whether it's a normal or
+extended scan code (or a few other possibilities)
+
+The source should be compatible with most 8051 assemblers that use the Intel
+assembly format. I personally use the MCE 8051 IDE, with the ASEM-51 assembler.
+Both are FOSS tools.
+
+Features:
+- The firmware currently supports 4 modes - normal, NAS, function and game.
+Normal, NAS and Function modes are roughly equivalent to the same modes in the
+official firmware. Each mode is represented by one of the LEDs on the right
+hand unit. 
+- Game mode is designed to be a "left hand only" mapping for use in games.
+Every left hand button is mapped to a key, and all 3 modifiers are available
+via the left thumb buttons. The game mode is activated by pressing and holding
+the "normal mode" key, and then pressing ";" (left hand, pinky, south button). 
+- It has a left-hand only shortcut for cut/copy/paste that is activated by
+using the "normal mode" key as a modifier with the QWERTY equivalent x,c,v keys
+(left hand, ring, middle and fore finger, south).
+- Support for typematic repeat
+
+
+Known Issues:
+- There is something fishy going on when booting some machines while the
+keyboard is plugged in, with this firmware. The keyboard will lock up, and the
+computer won't recognize it. The workaround is to plug a normal PS2 keyboard in
+during bootup, and then once the OS has booted, switch the keyboards and use the
+DataHand.
+- It doesn't seem to play well with the one PS2 to USB converter that I tried.
+- I haven't added support for the num lock/caps lock/etc. LEDs on the left hand
+unit
