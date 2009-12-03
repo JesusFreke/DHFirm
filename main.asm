@@ -52,36 +52,36 @@ CSEG AT 0h
 
 ;Interrupt handler for Timer0, used for typematic functionality
 CSEG AT 0Bh
-	CALL TypematicTimerTick
+	CALL TypematicTimerTick ;Typematic.asm
 	RETI
 
 ;Interrupt handler for Timer1, used to ensure that the IR LED/receiver
 ;have time to settle after being turned on
 CSEG AT 1Bh
-	CALL DemuxSelectorTimerTick
+	CALL DemuxSelectorTimerTick ;ScanButtons.asm
 	RETI
 
 CSEG AT 1Fh
 	Main:
 		;initialize the stack
 		MOV SP, #STACK-1
-	
+
 		CALL _Reset
-	
+
 		;loop
 		MainLoop:
 			CALL CheckBufferedData
 			CALL CheckButtons
 			CALL CheckForHostCommand
 		SJMP MainLoop
-	
+
 	_Reset:
 		;stop the timers
 		CLR TR0
 		CLR TR1
-	
+
 		MOV KeyboardEnabled, #01h
-	
+
 		;initialize data
 		CALL ResetButtons
 		CALL ResetKeyboardBuffer
@@ -91,22 +91,22 @@ CSEG AT 1Fh
 		MOV ShiftPressed, #00h
 		;normal mode button is not pressed
 		MOV NormalPressed, #00h
-	
+
 		CALL ResetTypematicValues
-	
+
 		;set timer 0 and timer 1 to '16-bit' mode, and enable their interrupts
 		MOV TMOD, #011h
 		SETB EA
 		SETB ET0
 		SETB ET1
-	
+
 		;initialize timer 1 to 100 cycles
 		MOV TH1, #0FFh
 		MOV TL1, #09Ch
-	
+
 		;Select the first set of buttons
 		MOV P1, #0F0h
-	
+
 		;wait ~650mS
 		MOV R0, #05h
 			ResetLoop1:
@@ -117,11 +117,11 @@ CSEG AT 1Fh
 					DJNZ R2, ResetLoop3
 			DJNZ R1, ResetLoop2
 		DJNZ R0, ResetLoop1
-	
+
 		;send the BAT result
 		MOV R1, #0AAh
 		CALL SendByte
-	
+
 		;set "normal mode" LED
 		MOV P0, #0FDh
 	RET

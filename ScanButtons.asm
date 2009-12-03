@@ -47,57 +47,57 @@ CSEG
 	;R1W	right hand, first finger, well
 	;R1R	right hand, first finger, right
 	;R1D	right hand, first finger, down
-	
+
 	;R2D	right hand, second finger, down
 	;R2L	right hand, second finger, left
 	;R2U	right hand, second finger, up
 	;R2W	right hand, second finger, well
 	;R2R	right hand, second finger, right
-	
+
 	;R3L	right hand, third finger, left
 	;R3U	right hand, third finger, up
 	;R3W	right hand, third finger, well
 	;R3R	right hand, third finger, right
 	;R3D	right hand, third finger, down
-	
+
 	;R4D	right hand, fourth finger, down
 	;R4L	right hand, fourth finger, left
 	;R4U	right hand, fourth finger, up
 	;R4W	right hand, fourth finger, well
 	;R4R	right hand, fourth finger, right
-	
+
 	;R5LO	right hand, thumb, lower outside
 	;R5UO	right hand, thumb, upper outside
 	;R5D	right hand, thumb, down
 	;R5DD	right hand, thumb, down down
 	;R5I	right hand, thumb, inside
 	;R5U	right hand, thumb, up
-	
-	
+
+
 	;L4L	left hand, fourth finger, left
 	;L4U	left hand, fourth finger, up
 	;L4W	left hand, fourth finger, well
 	;L4R	left hand, fourth finger, right
 	;L4D	left hand, fourth finger, down
-	
+
 	;L3D	left hand, third finger, down
 	;L3L	left hand, third finger, left
 	;L3U	left hand, third finger, up
 	;L3W	left hand, third finger, well
 	;L3R	left hand, third finger, right
-	
+
 	;L2L	left hand, second finger, left
 	;L2U	left hand, second finger, up
 	;L2W	left hand, second finger, well
 	;L2R	left hand, second finger, right
 	;L2D	left hand, second finger, down
-	
+
 	;L1D	left hand, first finger, down
 	;L1L	left hand, first finger, left
 	;L1U	left hand, first finger, up
 	;L1W	left hand, first finger, well
 	;L1R	left hand, first finger, right
-	
+
 	;L5LO	left hand, thumb, lower outside
 	;L5UO	left hand, thumb, upper outside
 	;L5D	left hand, thumb, down
@@ -159,7 +159,7 @@ CSEG
 		DB 00h	;49	R5U	Function Mode (keyboard only)
 		DB 5Ah	;50	L5I	Enter
 		DB 00h	;51	L5U	Normal Mode (keyboard only)
-	
+
 	NASMap:
 		DB 36h	;0	R1L	'6'
 		DB 3Dh	;1	R1U	'&' (+shift)
@@ -213,7 +213,7 @@ CSEG
 		DB 00h	;49	R5U	Function Mode (keyboard only)
 		DB 5Ah	;50	L5I	Enter
 		DB 00h	;51	L5U	Normal Mode (keyboard only)
-	
+
 	FMap:
 		DB 6Bh	;0	R1L	Left Arrow (extended)
 		DB 75h	;1	R1U	Up Arrow (extended)
@@ -267,7 +267,7 @@ CSEG
 		DB 00h	;49	R5U	Function Mode (keyboard only)
 		DB 5Ah	;50	L5I	Enter
 		DB 00h	;51	L5U	Normal Mode (keyboard only)
-	
+
 	GameMap:
 		DB 23h	;0	R1L	'D'
 		DB 34h	;1	R1U	'G'
@@ -321,7 +321,7 @@ CSEG
 		DB 00h	;49	R5U	Function Mode (keyboard only)
 		DB 29h	;50	L5I	Space
 		DB 00h	;51	L5U	Normal Mode (keyboard only)
-	
+
 	LEDTable:
 		DB 00h	;00h not used
 		DB 0Dh	;01h normal mode
@@ -333,17 +333,17 @@ CSEG
 	ResetButtons:
 		CLR A
 		MOV R1, #01ah
-	
+
 		MOV R0, #ButtonStates
-	
+
 		ResetButtonsLoop:
 			MOV @R0, A
 			INC R0
 		DJNZ R1, ResetButtonsLoop
-	
+
 		MOV NASLock, #00h
 	RET
-	
+
 	CheckButtons:
 		;The selector value that was on the port when the function started
 		CurrentSelector EQU R2
@@ -351,28 +351,28 @@ CSEG
 		CurrentButtonState EQU R3
 		;Bits 0-3 are boolean flags that indicate whether the button changed states
 		ButtonsChanged EQU R4
-	
-	
+
+
 		;make sure the keyboard is enabled
 		MOV A, KeyboardEnabled
 		JNZ CheckTimer1
 		RET
-	
+
 		;make sure that at least 100uS has passed since the previous selector change
 		;This gives the light transmitters/receivers time to come up to steady-state voltage
 		;Timer1 will disable itself once 100uS have passed
 		CheckTimer1:
 		MOV C, TR1
 		JC CheckTimer1
-	
+
 		;get the current selector value
 		MOV A, P1
 		ANL A, #0Fh
 		MOV CurrentSelector, A
-	
+
 		;store the current button state
 		MOV CurrentButtonState, P1
-	
+
 		;increment the selector and output it to the demux (P1), so that the next button
 		;state will be ready for the next iteration
 		MOV A, CurrentSelector
@@ -385,18 +385,18 @@ CSEG
 		MOV P1, A
 		;restart the selector timer, so we know once 100uS have passed
 		SETB TR1
-	
+
 		;The selector value * 2 is the index into the ButtonStates table
 		MOV A, CurrentSelector
 		CLR C
 		RLC A
 		ADD A, #ButtonStates
 		MOV ButtonStateAddr, A
-	
+
 		;load A with the saved button state for the first two buttons
 		MOV R0, A
 		MOV A, @R0
-	
+
 		;set bits 4 and 5 of A based on the saved state of the first two buttons. The
 		;bit for that button should be 1 if it is pressed (in any mode), or 0 if
 		;not pressed
@@ -405,20 +405,20 @@ CSEG
 		ORL C, ACC.6
 		ORL C, ACC.7
 		MOV ACC.5, C
-	
+
 		MOV C, ACC.0
 		ORL C, ACC.1
 		ORL C, ACC.2
 		ORL C, ACC.3
 		MOV ACC.4, C
-	
+
 		MOV R1, A
-	
+
 		;load A with the saved button state for the second two buttons
 		INC R0
 		MOV A, @R0
 		DEC R0
-	
+
 		;set bits 6 and 7 of A based on the saved state of the first two buttons. The
 		;bit for that button should be 1 if it is pressed (in any mode), or 0 if
 		;not pressed
@@ -427,53 +427,53 @@ CSEG
 		ORL C, ACC.6
 		ORL C, ACC.7
 		MOV ACC.7, C
-	
+
 		MOV C, ACC.0
 		ORL C, ACC.1
 		ORL C, ACC.2
 		ORL C, ACC.3
 		MOV ACC.6, C
-	
+
 		;or in bits 4 and 5 for the first two buttons
 		ANL A, #0C0h
 		ORL A, R1
-	
+
 		;compare the saved button states with the current button states
 		;if any bit is 1, then that button changed states
 		;Only the most significant 4 bits are relevant. The least significant 4 bits are ignored
 		XRL A, CurrentButtonState
 		ANL A, #0F0h
 		MOV ButtonsChanged, A
-	
+
 		JNZ StartCheckButtons
-	
+
 		RET
-	
+
 		StartCheckButtons:
-	
+
 		;one of the buttons changed state. Stop the timer. We'll restart it in
 		;the key press/release handler
 		CLR TR0
-	
+
 		CheckButton0:
 			;If ACC.4 is 1, then the button was either pressed or released
 			MOV C, ACC.4
 			JNC CheckButton1
-	
+
 			;Store the index for this button in ButtonIndex
 			MOV A, CurrentSelector
 			RL A
 			RL A
 			MOV ButtonIndex, A
-	
+
 			;was the button pressed or released?
 			MOV A, CurrentButtonState
 			MOV C, ACC.4
 			JNC Button0Released
-	
+
 			MOV A, Mode
 			CALL HandleButtonPress
-	
+
 			;update the saved button state
 			MOV A, Mode
 			;get the saved button state
@@ -490,7 +490,7 @@ CSEG
 			;and save it back
 			MOV @R0, B
 			SJMP CheckButton1
-	
+
 			Button0Released:
 				;Load the button state into bits 0-3 of A
 				MOV A, @R0
@@ -500,28 +500,28 @@ CSEG
 				MOV A, @R0
 				ANL A, #0F0h
 				MOV @R0, A
-	
+
 		CheckButton1:
 			;If bit 4 is 1, then the button was either pressed or released
 			MOV A, ButtonsChanged
 			MOV C, ACC.5
 			JNC CheckButton2
-	
+
 			;Store the index for this button in ButtonIndex
 			MOV A, CurrentSelector
 			RL A
 			RL A
 			INC A
 			MOV ButtonIndex, A
-	
+
 			;was the button pressed or released?
 			MOV A, CurrentButtonState
 			MOV C, ACC.5
 			JNC Button1Released
-	
+
 			MOV A, Mode
 			CALL HandleButtonPress
-	
+
 			;update the saved button state
 			MOV A, Mode
 			;get the saved button state
@@ -538,7 +538,7 @@ CSEG
 			;and save it back
 			MOV @R0, B
 			SJMP CheckButton2
-	
+
 			Button1Released:
 				;Load the button state into bits 0-3 of A
 				MOV A, @R0
@@ -549,32 +549,32 @@ CSEG
 				MOV A, @R0
 				ANL A, #0Fh
 				MOV @R0, A
-	
-	
+
+
 		CheckButton2:
 			;move to the next byte in the table
 			INC R0
-	
+
 			;If bit 6 is 1, then the button was either pressed or released
 			MOV A, ButtonsChanged
 			MOV C, ACC.6
 			JNC CheckButton3
-	
+
 			;Store the index for this button in ButtonIndex
 			MOV A, CurrentSelector
 			RL A
 			RL A
 			ADD A, #02h
 			MOV ButtonIndex, A
-	
+
 			;was the button pressed or released?
 			MOV A, CurrentButtonState
 			MOV C, ACC.6
 			JNC Button2Released
-	
+
 			MOV A, Mode
 			CALL HandleButtonPress
-	
+
 			;update the saved button state
 			MOV A, Mode
 			;get the saved button state
@@ -591,7 +591,7 @@ CSEG
 			;and save it back
 			MOV @R0, B
 			SJMP CheckButton3
-	
+
 			Button2Released:
 				;Load the button state into bits 0 and 1 of A
 				MOV A, @R0
@@ -601,28 +601,28 @@ CSEG
 				MOV A, @R0
 				ANL A, #0F0h
 				MOV @R0, A
-	
+
 		CheckButton3:
 			;If bit 7 is 1, then the button was either pressed or released
 			MOV A, ButtonsChanged
 			MOV C, ACC.7
 			JNC CheckButtonsEnd
-	
+
 			;Store the index for this button in ButtonIndex
 			MOV A, CurrentSelector
 			RL A
 			RL A
 			ADD A, #03h
 			MOV ButtonIndex, A
-	
+
 			;was the button pressed or released?
 			MOV A, CurrentButtonState
 			MOV C, ACC.7
 			JNC Button3Released
-	
+
 			MOV A, Mode
 			CALL HandleButtonPress
-	
+
 			;update the saved button state
 			MOV A, Mode
 			;get the saved button state
@@ -639,10 +639,10 @@ CSEG
 			;and save it back
 			MOV @R0, B
 			SJMP CheckButtonsEnd
-	
+
 			Button3Released:
-	
-	
+
+
 				;Load the button state into bits 0 and 1 of A
 				MOV A, @R0
 				SWAP A
@@ -652,10 +652,10 @@ CSEG
 				MOV A, @R0
 				ANL A, #0Fh
 				MOV @R0, A
-	
+
 	CheckButtonsEnd:
 	RET
-	
+
 	;This takes the appropriate action based on the button that was pressed
 	;For most keys, it will send the appropriate scancodes
 	;For "special" keys (NAS, function mode, modifiers, etc.), it will execute
@@ -683,7 +683,7 @@ CSEG
 		POP AR2
 		POP AR0
 	RET
-	
+
 	HandleButtonPress_internal:
 		MOV R2, A
 		;Load the button index
@@ -692,13 +692,13 @@ CSEG
 		MOV B, #03h
 		MUL AB
 		MOV R6, A
-	
+
 		MOV DPTR, #PressModeTable
 		MOV A, R2
 		RL A
 		RL A
 		JMP @A+DPTR
-	
+
 		PressModeTable: ;put in extra nops, so each entry is an even 4 bytes
 			nop
 			nop
@@ -712,7 +712,7 @@ CSEG
 			nop
 			LJMP HandleButtonPress_GameMode
 			nop
-	
+
 		HandleButtonPress_NormalMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -720,7 +720,7 @@ CSEG
 			MOV R1, #Low(NormalMap)
 			MOV DPTR, #NormalPressTable
 			JMP @A+DPTR
-	
+
 			NormalPressTable:
 				LJMP NormalPress ;0
 				LJMP NormalPress ;1
@@ -774,7 +774,7 @@ CSEG
 				LJMP FunctionModePress ;49
 				LJMP NormalPress ;50
 				LJMP NormalModePress ;51
-	
+
 		HandleButtonPress_NASMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -782,7 +782,7 @@ CSEG
 			MOV R1, #Low(NASMap)
 			MOV DPTR, #NASPressTable
 			JMP @A+DPTR
-	
+
 			NASPressTable:
 				LJMP NormalPress ;0
 				LJMP ShiftPress ;1
@@ -836,7 +836,7 @@ CSEG
 				LJMP FunctionModePress ;49
 				LJMP NormalPress ;50
 				LJMP NormalModePress ;51
-	
+
 		HandleButtonPress_FMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -844,7 +844,7 @@ CSEG
 			MOV R1, #Low(FMap)
 			MOV DPTR, #FPressTable
 			JMP @A+DPTR
-	
+
 			FPressTable:
 				LJMP ExtendedPress ;0
 				LJMP ExtendedPress ;1
@@ -898,7 +898,7 @@ CSEG
 				LJMP FunctionModePress ;49
 				LJMP NormalPress ;50
 				LJMP NormalModePress ;51
-	
+
 		HandleButtonPress_GameMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -906,7 +906,7 @@ CSEG
 			MOV R1, #Low(GameMap)
 			MOV DPTR, #GamePressTable
 			JMP @A+DPTR
-	
+
 			GamePressTable:
 				LJMP NormalPress ;0
 				LJMP NormalPress ;1
@@ -960,8 +960,8 @@ CSEG
 				LJMP FunctionModePress ;49
 				LJMP NormalPress ;50
 				LJMP NormalModePress ;51
-	
-	
+
+
 	;This takes the appropriate action based on the button that was released
 	;For most keys, it will send the appropriate scancodes
 	;For "special" keys (NAS, function mode, modifiers, etc.), it will execute
@@ -988,30 +988,30 @@ CSEG
 		POP AR3
 		POP AR2
 		POP AR0
-	
+
 		;re-enable the typematic timer. It will disable itself
 		;if the button is no longer pressed
 		SETB TR0
 	RET
-	
+
 	HandleButtonRelease_internal:
 		;save the button state
 		MOV R2, A
-	
+
 		;Load the button index
 		MOV A, ButtonIndex
 		;Each entry in NormalPressTable is 3 bytes
 		MOV B, #03h
 		MUL AB
 		MOV R6, A
-	
+
 		;The button state (in R2) indicates which mode the button was pressed in
 		MOV DPTR, #ReleaseModeTable
 		MOV A, R2
 		RL A
 		RL A
 		JMP @A+DPTR
-	
+
 		ReleaseModeTable: ;put in extra nops, so each entry is an even 4 bytes
 			nop
 			nop
@@ -1025,8 +1025,8 @@ CSEG
 			nop
 			LJMP HandleButtonRelease_GameMode
 			nop
-	
-	
+
+
 		HandleButtonRelease_NormalMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -1034,7 +1034,7 @@ CSEG
 			MOV R1, #Low(NormalMap)
 			MOV DPTR, #NormalReleaseTable
 			JMP @A+DPTR
-	
+
 			NormalReleaseTable:
 				LJMP NormalRelease ;0
 				LJMP NormalRelease ;1
@@ -1088,7 +1088,7 @@ CSEG
 				LJMP FunctionModeRelease ;49
 				LJMP NormalRelease ;50
 				LJMP NormalModeRelease ;51
-	
+
 		HandleButtonRelease_NASMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -1096,7 +1096,7 @@ CSEG
 			MOV R1, #Low(NASMap)
 			MOV DPTR, #NASReleaseTable
 			JMP @A+DPTR
-	
+
 			NASReleaseTable:
 				LJMP NormalRelease ;0
 				LJMP NormalRelease ;1
@@ -1150,7 +1150,7 @@ CSEG
 				LJMP FunctionModeRelease ;49
 				LJMP NormalRelease ;50
 				LJMP NormalModeRelease ;51
-	
+
 		HandleButtonRelease_FMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -1158,7 +1158,7 @@ CSEG
 			MOV R1, #Low(FMap)
 			MOV DPTR, #FReleaseTable
 			JMP @A+DPTR
-	
+
 			FReleaseTable:
 				LJMP ExtendedRelease ;0
 				LJMP ExtendedRelease ;1
@@ -1212,7 +1212,7 @@ CSEG
 				LJMP FunctionModeRelease ;49
 				LJMP NormalRelease ;50
 				LJMP NormalModeRelease ;51
-	
+
 		HandleButtonRelease_GameMode:
 			;restore the table index from R6
 			MOV A, R6
@@ -1220,7 +1220,7 @@ CSEG
 			MOV R1, #Low(GameMap)
 			MOV DPTR, #GameReleaseTable
 			JMP @A+DPTR
-	
+
 			GameReleaseTable:
 				LJMP NormalRelease ;0
 				LJMP NormalRelease ;1
@@ -1274,9 +1274,9 @@ CSEG
 				LJMP FunctionModeRelease ;49
 				LJMP NormalRelease ;50
 				LJMP NormalModeRelease ;51
-	
-	
-	
+
+
+
 	;Handles the press of a "normal" key. A normal
 	;key has 1 scancode byte, and doesn't affect the keyboard mode
 	;Parameters:
@@ -1298,16 +1298,16 @@ CSEG
 		MOVC A, @A+DPTR
 		;save the scancode in R3
 		MOV R3, A
-	
+
 		;let's try to send the data over the PS/2 bus
 		MOV R1, A
 		CALL SendByte
-	
+
 		;If the send failed, buffer the data instead
 		JNC NormalPressBufferData
-	
+
 		CALL StartTypematicDelayTimer
-	
+
 	NormalPressEnd:
 	RET
 	NormalPressBufferData:
@@ -1316,23 +1316,23 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC NormalPressEnd
-	
+
 		;add the data to the buffer
 		MOV R1, AR3
 		CALL AddByteToBuffer
-	
+
 		CALL StartTypematicDelayTimer
 	RET
-	
+
 	NormalPress_CheckNormalHold:
-	
+
 		;check if the normal button is being held. If not, just jump to NormalPress
 		MOV A, NormalPressed
 		MOV C, ACC.0
 		JNC NormalPress
-	
+
 		;the normal button is being held down. We're going to send a special button press
-	
+
 		; was it the L1D button? if so, send CTRL+V
 		MOV A, ButtonIndex
 		CJNE A, #01Fh, CheckL2D
@@ -1340,28 +1340,28 @@ CSEG
 		MOV R0, #02Ah
 		CALL SendCtrlSequence
 		RET
-	
+
 		CheckL2D:
 		CJNE A, #01Eh, CheckL3D
 		;move the scancode for C into R0
 		MOV R0, #021h
 		CALL SendCtrlSequence
 		RET
-	
+
 		CheckL3D:
 		CJNE A, #0Bh, CheckL4D
 		;move the scancode for X into R0
 		MOV R0, #022h
 		CALL SendCtrlSequence
 		RET
-	
+
 		CheckL4D:
 		CJNE A, #0Ah, NormalPress
 		;set the game mode
 		CALL SetGameMode
 	RET
-	
-	
+
+
 	;Handles the press of an "extended" key. An
 	;extended key has 1 scancode byte plus an initial "extended"
 	;byte of 0xE0
@@ -1382,23 +1382,23 @@ CSEG
 		MOV DPL, R1
 		MOV A, ButtonIndex
 		MOVC A, @A+DPTR
-	
+
 		;save the scancode in R3
 		MOV R3, A
-	
+
 		;let's try to send the data ovev the PS/2 bus
 		MOV R1, #0E0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ExtendedPressBufferData
-	
+
 		MOV R1, AR3
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ExtendedPressBufferData
-	
+
 		CALL StartTypematicDelayTimer
-	
+
 	ExtendedPressEnd:
 	RET
 	ExtendedPressBufferData:
@@ -1407,24 +1407,24 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC ExtendedPressEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #0E0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, AR3
 		CALL AddByteToBuffer
-	
+
 		CALL StartTypematicDelayTimer
 	JMP ExtendedPressEnd
-	
-	
+
+
 	ShiftKeyPress:
 		MOV ShiftPressed, #01h
 		CALL NormalPress
 	RET
-	
-	
+
+
 	;Modifies:
 	;	Memory:
 	;		Mode
@@ -1435,10 +1435,10 @@ CSEG
 		MOV Mode, #02h
 		MOV NASLock, #01h
 		;set the LEDs
-	
+
 		MOV P0, #0Eh
 	RET
-	
+
 	;Modifies:
 	;	Memory:
 	;		PreviousMode, Mode
@@ -1450,11 +1450,11 @@ CSEG
 		;change the mode
 		MOV Mode, #02h
 		;set the LEDs
-	
+
 		MOV P0, #0Eh
 	RET
-	
-	
+
+
 	;Modifies:
 	;	Memory:
 	;		Mode
@@ -1464,31 +1464,31 @@ CSEG
 		;change the mode
 		MOV Mode, #03h
 		MOV NASLock, #00h
-	
-	
+
+
 		;set the LEDs
 		MOV P0, #0Bh
 	RET
-	
+
 	NormalModePress:
 		MOV NormalPressed, #01h
 		;Change the mode
 		MOV Mode, #01h
 		MOV NASLock, #00h
-	
+
 		;set the LEDs
 		MOV P0, #0Dh
 	RET
-	
+
 	SetGameMode:
 		;change the mode
 		MOV MODE, #04h
 		MOV NASLock, #00h
-	
+
 		;set the LEDs
 		MOV P0, #07h
 	RET
-	
+
 	;Handles the press of a "shifted" key. A shifted
 	;key is a key that would requires shift to be held down on a
 	;normal keyboard, for example, all the symbols that are accessed
@@ -1510,125 +1510,125 @@ CSEG
 		MOV DPL, R1
 		MOV A, ButtonIndex
 		MOVC A, @A+DPTR
-	
+
 		;save the scancode in R3
 		MOV R3, A
-	
+
 		;let's try to send the data over the PS/2 bus
-	
+
 		;first, send the shift make code
 		MOV R1, #012h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ShiftPressBufferData
-	
+
 		MOV R1, AR3
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ShiftPressBufferData
-	
+
 		MOV A, ShiftPressed
 		MOV C, ACC.0
 		JC SkipShiftBreak
-	
+
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ShiftPressBufferData
-	
+
 		MOV R1, #012h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ShiftPressBufferData
-	
-	
+
+
 		SkipShiftBreak:
 		CALL StartTypematicDelayTimer
-	
+
 	ShiftPressEnd:
 	RET
 	ShiftPressBufferData:
 		MOV A, ShiftPressed
 		MOV C, ACC.0
 		JC ShiftPressBufferData_NoShiftBreak
-	
+
 		;add the length byte
 		MOV R2, #04h
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC ShiftPressEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #012h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, AR3
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #012h
 		CALL AddByteToBuffer
-	
+
 		CALL StartTypematicDelayTimer
 		RET
-	
+
 		ShiftPressBufferData_NoShiftBreak:
 		;add the length byte
 		MOV R2, #02h
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC ShiftPressEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #012h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, AR3
 		CALL AddByteToBuffer
-	
-	
+
+
 		CALL StartTypematicDelayTimer
 	RET
-	
-	
+
+
 	SendCtrlSequence:
 		;save the scancode in R3
 		MOV R3, AR0
-	
+
 		;let's try to send the data over the PS/2 bus
-	
+
 		;first, send the ctrl make code
 		MOV R1, #014h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC SendCtrlSequenceBufferData
-	
+
 		;now send the make code that we were passed
 		MOV R1, AR3
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC SendCtrlSequenceBufferData
-	
+
 		;now send the break code that we were passed
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC SendCtrlSequenceBufferData
-	
+
 		MOV R1, AR3
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC SendCtrlSequenceBufferData
-	
-	
+
+
 		;now send the ctrl break code
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC SendCtrlSequenceBufferData
-	
+
 		MOV R1, #014h
 		CALL SendByte
 		;if the send failed, buffer the data instead
@@ -1641,28 +1641,28 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC SendCtrlSequenceEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #014h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, AR3
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, AR3
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #014h
 		CALL AddByteToBuffer
 	RET
-	
-	
+
+
 	;Handles the press of the Print Screen button. This button's
 	;scan code is 4 bytes, and is treated as a special case.
 	PrintScreenPress:
@@ -1671,22 +1671,22 @@ CSEG
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenPressBufferData
-	
+
 		MOV R1, #012h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenPressBufferData
-	
+
 		MOV R1, #0E0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenPressBufferData
-	
+
 		MOV R1, #07Ch
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenPressBufferData
-	
+
 	PrintScreenPressEnd:
 	RET
 	PrintScreenPressBufferData:
@@ -1695,21 +1695,21 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC PrintScreenPressEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #0E0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #012h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0E0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #07Ch
 		CALL AddByteToBuffer
 	RET
-	
+
 	;Handles the press of the pause button. This button's
 	;scan code is 8 bytes, and is treated as a special case.
 	PausePress:
@@ -1718,42 +1718,42 @@ CSEG
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 		MOV R1, #014h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 		MOV R1, #077h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 		MOV R1, #0E1h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 		MOV R1, #014h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 		MOV R1, #077h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PausePressBufferData
-	
+
 	PausePressEnd:
 	RET
 	PausePressBufferData:
@@ -1762,40 +1762,40 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC PrintScreenPressEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #0E1h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #014h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #077h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0E1h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #014h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #077h
 		CALL AddByteToBuffer
 	RET
-	
-	
+
+
 	TBD:
 	RET
-	
-	
-	
-	
+
+
+
+
 	;Handles the release of a "normal" key. A normal
 	;key has 1 scancode byte (not including the "break" byte), and
 	;doesn't affect the keyboard mode
@@ -1811,7 +1811,7 @@ CSEG
 	;	Ports:
 	;		KBData, KBClock
 	NormalRelease:
-	
+
 		;Get the scan code from the appropriate map
 		MOV DPH, R0
 		MOV DPL, R1
@@ -1819,18 +1819,18 @@ CSEG
 		MOVC A, @A+DPTR
 		;save the scancode in R3
 		MOV R3, A
-	
+
 		;let's try to send the data over the PS/2 bus
 		MOV R1, #0F0h
 		CALL SendByte
 		;If the send failed, buffer the data instead
 		JNC NormalReleaseBufferData
-	
+
 		MOV R1, AR3
 		CALL SendByte
 		;If the send failed, buffer the data instead
 		JNC NormalReleaseBufferData
-	
+
 	NormalReleaseEnd:
 	RET
 	NormalReleaseBufferData:
@@ -1839,15 +1839,15 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC NormalReleaseEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, AR3
 		CALL AddByteToBuffer
 	RET
-	
+
 	;Handles the release of an "extended" key. An
 	;extended key has 2 scancode bytes (not including the "break"
 	;byte): A static extended byte of 0xE0 plus a key-dependent byte
@@ -1868,26 +1868,26 @@ CSEG
 		MOV DPL, R1
 		MOV A, ButtonIndex
 		MOVC A, @A+DPTR
-	
+
 		;save the scancode in R3
 		MOV R3, A
-	
+
 		;let's try to send the data ovev the PS/2 bus
 		MOV R1, #0E0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ExtendedReleaseBufferData
-	
+
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC ExtendedReleaseBufferData
-	
+
 		MOV R1, AR3
 		CALL Sendbyte
 		;if the send failed, buffer the data instead
 		JNC ExtendedReleaseBufferData
-	
+
 	ExtendedReleaseEnd:
 	RET
 	ExtendedReleaseBufferData:
@@ -1896,19 +1896,19 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC ExtendedReleaseEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #0E0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, AR3
 		CALL AddByteToBuffer
 	RET
-	
-	
+
+
 	;Handles the release of the Print Screen button. This button's
 	;break code is 6 bytes, and is treated as a special case.
 	PrintScreenRelease:
@@ -1917,32 +1917,32 @@ CSEG
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenReleaseBufferData
-	
+
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenReleaseBufferData
-	
+
 		MOV R1, #07Ch
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenReleaseBufferData
-	
+
 		MOV R1, #0E0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenReleaseBufferData
-	
+
 		MOV R1, #0F0h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenReleaseBufferData
-	
+
 		MOV R1, #012h
 		CALL SendByte
 		;if the send failed, buffer the data instead
 		JNC PrintScreenReleaseBufferData
-	
+
 	PrintScreenReleaseEnd:
 	RET
 	PrintScreenReleaseBufferData:
@@ -1951,45 +1951,45 @@ CSEG
 		CALL AddLengthByteToBuffer
 		;check for  failure
 		JNC PrintScreenReleaseEnd
-	
+
 		;add the data to the buffer
 		MOV R1, #0E0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #07Ch
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0E0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #0F0h
 		CALL AddByteToBuffer
-	
+
 		MOV R1, #012h
 		CALL AddByteToBuffer
 	RET
-	
+
 	PauseRelease:
 		;pause doesn't have a break code
 	RET
-	
+
 	ShiftKeyRelease:
 		MOV ShiftPressed, #00h
 		CALL NormalRelease
 	RET
-	
+
 	NormalModeRelease:
 		MOV NormalPressed, #00h
 	RET
-	
+
 	NASLockRelease:
 	FunctionModeRelease:
 		;nothing to do
 	RET
-	
+
 	;Modifies:
 	;	Registers:
 	;		A, DPTR
@@ -2001,10 +2001,10 @@ CSEG
 		;only handle this button release if NAS lock isn't on
 		MOV A, NASLock
 		JNZ NASModeReleaseEnd
-	
+
 		;restore the mode
 		MOV Mode, PreviousMode
-	
+
 		;set the LEDs
 		MOV A, Mode
 		MOV DPTR, #LEDTable
@@ -2012,7 +2012,7 @@ CSEG
 		MOV P0, A
 	NASModeReleaseEnd:
 	RET
-	
+
 	;Handles the timer1 interrupt. Timer1 is
 	;started when the selector is changed. It is
 	;set to a remaining value of 100 cycles.
