@@ -23,7 +23,7 @@ is called for each key in each mode - depending on whether it's a normal or
 extended scan code (or a few other possibilities)
 
 The source should be compatible with most 8051 assemblers that use the Intel
-assembly format. I personally use the MCE 8051 IDE, with the ASEM-51 assembler.
+assembly format. I personally use the MCU 8051 IDE, with the ASEM-51 assembler.
 Both are FOSS tools.
 
 Features:
