@@ -451,8 +451,8 @@ CSEG
 
 		StartCheckButtons:
 
-		;one of the buttons changed state. Stop the timer. We'll restart it in
-		;the key press/release handler
+		;one of the buttons changed state. Stop the typematic timer, so we don't
+		;send the old key. We'll restart it in the key press/release handler
 		CLR TR0
 
 		CheckButton0:
@@ -460,7 +460,8 @@ CSEG
 			MOV C, ACC.4
 			JNC CheckButton1
 
-			;Store the index for this button in ButtonIndex
+			;Calculate and store the index for this button in ButtonIndex
+			;The button index is CurrentSelector * 4
 			MOV A, CurrentSelector
 			RL A
 			RL A
@@ -661,7 +662,7 @@ CSEG
 	;For "special" keys (NAS, function mode, modifiers, etc.), it will execute
 	;the appropriate functionality
 	;Parameters:
-	;  A - the button state the button that was pressed
+	;	A - the button state the button that was pressed
 	;	ButtonIndex - the index of the button that was pressed
 	;Modifies:
 	;	Registers:
@@ -967,7 +968,7 @@ CSEG
 	;For "special" keys (NAS, function mode, modifiers, etc.), it will execute
 	;the appropriate functionality
 	;Parameters:
-	;  A - the button state the button that was released
+	;	A - the button state the button that was released
 	;	ButtonIndex - the index of the button that was pressed
 	;Modifies:
 	;	Registers:
@@ -1280,8 +1281,8 @@ CSEG
 	;Handles the press of a "normal" key. A normal
 	;key has 1 scancode byte, and doesn't affect the keyboard mode
 	;Parameters:
-	;	ButtonIndex - the index of the button that was pressed
-	;  R0 - The high byte of the address of the scancode lookup table to use
+	; 	ButtonIndex - the index of the button that was pressed
+	;	R0 - The high byte of the address of the scancode lookup table to use
 	;	R1 - The low byte of the address of the scancode lookup table to use
 	;Modifies:
 	;	Registers:
@@ -1367,7 +1368,7 @@ CSEG
 	;byte of 0xE0
 	;Parameters:
 	;	ButtonIndex - the index of the button that was pressed
-	;  R0 - The high byte of the address of the scancode lookup table to use
+	;	R0 - The high byte of the address of the scancode lookup table to use
 	;	R1 - The low byte of the address of the scancode lookup table to use
 	;Modifies:
 	;	Registers:
@@ -1495,7 +1496,7 @@ CSEG
 	;with shift+number keys
 	;Parameters:
 	;	ButtonIndex - the index of the button that was pressed
-	;  R0 - The high byte of the address of the scancode lookup table to use
+	;	R0 - The high byte of the address of the scancode lookup table to use
 	;	R1 - The low byte of the address of the scancode lookup table to use
 	;Modifies:
 	;	Registers:
@@ -1793,15 +1794,12 @@ CSEG
 	TBD:
 	RET
 
-
-
-
 	;Handles the release of a "normal" key. A normal
 	;key has 1 scancode byte (not including the "break" byte), and
 	;doesn't affect the keyboard mode
 	;Parameters:
 	;	ButtonIndex - the index of the button that was pressed
-	;  R0 - The high byte of the address of the scancode lookup table to use
+	;	R0 - The high byte of the address of the scancode lookup table to use
 	;	R1 - The low byte of the address of the scancode lookup table to use
 	;Modifies:
 	;	Registers:
@@ -1811,7 +1809,6 @@ CSEG
 	;	Ports:
 	;		KBData, KBClock
 	NormalRelease:
-
 		;Get the scan code from the appropriate map
 		MOV DPH, R0
 		MOV DPL, R1
@@ -1853,7 +1850,7 @@ CSEG
 	;byte): A static extended byte of 0xE0 plus a key-dependent byte
 	;Parameters:
 	;	ButtonIndex - the index of the button that was pressed
-	;  R0 - The high byte of the address of the scancode lookup table to use
+	;	R0 - The high byte of the address of the scancode lookup table to use
 	;	R1 - The low byte of the address of the scancode lookup table to use
 	;Modifies:
 	;	Registers:
