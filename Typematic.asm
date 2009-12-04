@@ -187,7 +187,9 @@ CSEG
 		;repeat the scancode
 		MOV A, TypematicButtonMode
 		MOV ButtonIndex, TypematicButtonIndex
-		CALL HandleButtonPress
+		;use the _internal procedure, which doesn't save/restore the registers,
+		;because we don't care if they get clobbered
+		CALL HandleButtonPress_internal
 
 		SETB ET0
 
@@ -266,7 +268,9 @@ CSEG
 		;repeat the scancode
 		MOV A, TypematicButtonMode
 		MOV ButtonIndex, TypematicButtonIndex
-		CALL HandleButtonPress
+		;use the _internal procedure, which doesn't save/restore the registers,
+		;because we don't care if they get clobbered
+		CALL HandleButtonPress_internal
 
 		SETB ET0
 
